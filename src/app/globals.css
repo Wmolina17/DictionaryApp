@@ -1,17 +1,5 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -22,5 +10,85 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+.title-bef {
+  position: relative;
+  display: flex;
+}
+
+.title-bef::before {
+  content: "";
+  position: absolute;
+  width: 92%;
+  height: 1px;
+  background-color: #ebebeb;
+  top: 50%;
+  right: 0;
+  z-index: -1;
+}
+
+.dark {
+  background-color: #16002b;
+  color: white;
+}
+
+.dark .bg-gray-100 {
+  background-color: #0e0020 !important;
+}
+
+.dark .bg-white-modal {
+  background-color: #1d0042 !important;
+}
+
+.dark input {
+  color: #ffffff;
+}
+
+.dark input::placeholder {
+  color: #aaaaaa;
+}
+
+.dark .text-gray-400 {
+  color: #bbbbbb !important;
+}
+
+.dark .text-gray-500 {
+  color: #aaaaaa !important;
+}
+
+.dark .text-gray-700 {
+  color: #cccccc !important;
+}
+
+.dark .bg-purple-200 {
+  background-color: #360941 !important;
+}
+
+.dark .text-purple-500 {
+  color: #c850f2 !important;
+}
+
+.dark .border-gray-200 {
+  border-color: #333333 !important;
+}
+
+.dark .title-bef::before {
+  background-color: #303030;
+}
+
+.dark select option {
+  color: black;
+}
+
+@media (max-width: 800px) {
+  .title-bef::before {
+    width: 88%;
+  }
+}
+
+@media (max-width: 500px) {
+  .title-bef::before {
+    width: 84%;
+  }
 }

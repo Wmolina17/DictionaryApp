@@ -1,101 +1,127 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import { Phonetic, Definition, Meaning, DictionaryEntry } from "../types/types"
+import { useDispatch } from "react-redux";
+import { addSearch } from "../redux/historySlice";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [word, setWord] = useState("");
+  const [error, setError] = useState("");
+  const [data, setData] = useState<DictionaryEntry | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const dispatch = useDispatch();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const fetchWord = async (word: string) => {
+    setError("");
+
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      const result = await res.json();
+      if (res.ok) setData(result[0]);
+      else setError(result.message || "Palabra no encontrada");
+    } catch (err) {
+      setError("Error al buscar la palabra");
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!word.trim()) {
+      setError("Please enter the word you wish to search for, can't be empty");
+      return
+    }
+    fetchWord(word);
+    dispatch(addSearch(word));
+    setWord("");
+  };
+
+  const handlePlayAudio = () => {
+    const phoneticWithAudio = data?.phonetics.find((p: Phonetic) => p.audio);
+    if (!phoneticWithAudio) return;
+
+    setIsPlaying(true);
+    const audio = new Audio(phoneticWithAudio.audio);
+
+    audio.onended = () => setIsPlaying(false);
+    audio.play();
+  };
+
+  return (
+    <div>
+      <form onSubmit={handleSubmit} className="w-full flex gap-2 bg-gray-100 rounded-2xl p-3 px-4">
+        <input
+          type="text"
+          value={word}
+          onChange={(e) => setWord(e.target.value)}
+          className="border-none w-full outline-none bg-transparent"
+          placeholder="Buscar palabra..."
+        />
+        <button type="submit">
+          <img width="20" height="20" src="https://img.icons8.com/ios-glyphs/30/C850F2/search--v1.png" alt="search" />
+        </button>
+      </form>
+
+      {error && <p className="text-red-500 mt-2">{error}</p>}
+
+      {data?.word && (
+        <div className="mt-5 pt-5">
+          <div className="w-full flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold">{data.word}</h1>
+              <p className="text-xl text-purple-500 mt-2">{data.phonetic}</p>
+            </div>
+            {data.phonetics?.find((p: Phonetic) => p.audio) && (
+              <button className="p-4 border-none rounded-full bg-purple-200" onClick={handlePlayAudio}>
+                {
+                  isPlaying ? (
+                    <img width="25" height="25" src="https://img.icons8.com/ios-glyphs/30/C850F2/audio-wave--v1.png" alt="audio-wave--v1" />
+                  ) : (
+                    <img width="25" height="25" src="https://img.icons8.com/ios-glyphs/30/C850F2/play--v1.png" alt="play--v1" />
+                  )
+                }
+              </button>
+            )}
+          </div>
+
+          {data.meanings.map((meaning: Meaning, index: number) => (
+            <div key={index} className="mt-6">
+              <h2 className="font-semibold text-lg title-bef">{meaning.partOfSpeech}</h2>
+              <h2 className="text-gray-400 text-lg mt-5 mb-3">Meaning</h2>
+
+              <ul className="space-y-2 text-gray-700">
+                {meaning.definitions.map((def: Definition, i: number) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-purple-500">•</span>
+                    <p className="flex flex-col">
+                      {def.definition}
+                      <span>{def.example && <span className="text-gray-400 italic">"{def.example}"</span>}</span>
+                    </p>
+                  </li>
+                ))}
+              </ul>
+
+              {meaning.synonyms.length > 0 && (
+                <p className="mt-5 mb-5 pt-3 pb-3">
+                  <span className="text-gray-500 mr-3">Synonyms </span>
+                  {meaning.synonyms.map((syn: string, i: number) => (
+                    <span key={i} className="text-purple-500 font-semibold">{syn}</span>
+                  ))}
+                </p>
+              )}
+            </div>
+          ))}
+
+          <hr className="w-full border-t border-gray-200 mt-5 pt-5" />
+
+          <p className="text-sm">
+            Source
+            <a href={data.sourceUrls[0]} target="_blank" rel="noopener noreferrer" className="text-gray-500 underline ml-3">
+              {data.sourceUrls[0]}
+            </a>
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
+
     </div>
   );
 }
