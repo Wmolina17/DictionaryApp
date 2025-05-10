@@ -20,7 +20,7 @@ const historySlice = createSlice({
         addSearch: (state, action: PayloadAction<string>) => {
             const newSearch: SearchHistoryItem = {
                 word: action.payload,
-                timestamp:new Date().toISOString(),
+                timestamp: new Date().toISOString(),
             };
             state.searches.unshift(newSearch);
         },

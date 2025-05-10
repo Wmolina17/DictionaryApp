@@ -15,6 +15,7 @@ npm install
 Para iniciar el servidor de desarrollo, ejecuta:
 ```bash
 npm run dev
+```
 
 ## Tecnologías utilizadas
 - Next.js

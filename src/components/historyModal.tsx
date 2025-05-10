@@ -51,7 +51,7 @@ export const HistoryModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                         history.map((item, index) => (
                             <li key={index} className="text-gray-700 dark:text-gray-300">
                                 <span className="font-semibold">{item?.word}</span>
-                                &nbsp; &nbsp; - &nbsp; &nbsp;
+                                &nbsp; - &nbsp;
                                 <span className="text-sm">{formatDate(item.timestamp)}</span>
                             </li>
                         ))
